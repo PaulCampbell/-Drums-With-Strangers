@@ -1,193 +1,113 @@
+import react, { useState, useRef, useEffect } from 'react'
 import Head from 'next/head'
+import useInterval from 'react-useinterval'
 
 export default function Home() {
+  const numSteps = 16
+  const tempo = 120
+
+  const [activeStep, setActiveStep] = useState(0)
+
+  const [isStarted, setIsStarted] = useState(false)
+  const [isJustStarted, setIsJustStarted] = useState(false)
+  const [instruments, setInstruments] = useState([
+    { order: 1, name: 'kick', sample: 'kick.mp3', pattern: new Array(numSteps).fill(false)},
+    { order: 2, name: 'clap', sample: 'clap.mp3', pattern: new Array(numSteps).fill(false)},
+    { order: 3, name: 'snare', sample: 'snare.mp3', pattern: new Array(numSteps).fill(false)},
+    { order: 4, name: 'hat', sample: 'hat.mp3', pattern: new Array(numSteps).fill(false)},
+  ])
+
+  useInterval(() => {
+    setIsJustStarted(false)
+    setActiveStep(activeStep === numSteps -1 ? 0 : activeStep + 1)
+  }, ((1000*60) / tempo) / 4)
+
+  function toggleIsStarted() {
+    setIsStarted(!isStarted)
+    if(!isStarted) {
+      setIsJustStarted(true)
+      setActiveStep(numSteps - 1)
+    }
+  }
+
+  function toggleBeat(instrument, beatIndex) {
+    instrument.pattern[beatIndex] = !instrument.pattern[beatIndex]
+    setInstruments(instruments.filter(i => i.name != instrument.name).concat([instrument]))
+  }
+
+  function getStepCssClasses(instrument, index) {
+    const cssClasses = ['step', 'column']
+    if(index % 4) {
+      cssClasses.push('first-beat')
+    }
+    if(instrument.pattern[index] == 1) {
+      cssClasses.push('beat-on')
+    }
+    if(isStarted && !isJustStarted &&  index == activeStep) {
+      cssClasses.push('active')
+    }
+    return cssClasses
+  }
+
   return (
     <div className="container">
       <Head>
-        <title>Create Next App</title>
+        <title>Drum with strangers</title>
         <link rel="icon" href="/favicon.ico" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.0/css/bulma.min.css" />
       </Head>
 
-      <main>
+      <main className="section">
         <h1 className="title">
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
+          DWS
         </h1>
 
-        <p className="description">
-          Get started by editing <code>pages/index.js</code>
-        </p>
 
-        <div className="grid">
-          <a href="https://nextjs.org/docs" className="card">
-            <h3>Documentation &rarr;</h3>
-            <p>Find in-depth information about Next.js features and API.</p>
-          </a>
-
-          <a href="https://nextjs.org/learn" className="card">
-            <h3>Learn &rarr;</h3>
-            <p>Learn about Next.js in an interactive course with quizzes!</p>
-          </a>
-
-          <a
-            href="https://github.com/vercel/next.js/tree/master/examples"
-            className="card"
-          >
-            <h3>Examples &rarr;</h3>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
-
-          <a
-            href="https://vercel.com/import?filter=next.js&utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className="card"
-          >
-            <h3>Deploy &rarr;</h3>
-            <p>
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
-        </div>
+      <div className="machine">
+        { instruments.sort((a, b) => {
+          if(a.order > b.order)
+            return 1
+          return -1
+        }).map(instrument=> {
+          return <div className="columns is-mobile">
+              <div className="column is-1">
+                {instrument.name}
+              </div>
+              { [...Array(numSteps)].map((_, i) => {
+                return <div onClick={() => toggleBeat(instrument, i)} className={getStepCssClasses(instrument, i).join(" ")}>
+                </div>
+              })}
+            </div>
+        })}
+      </div>
+      <a href="#" className="button" onClick={toggleIsStarted}>{ isStarted ? "Stop" : "Start" }</a>
       </main>
 
-      <footer>
-        <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Powered by{' '}
-          <img src="/vercel.svg" alt="Vercel Logo" className="logo" />
-        </a>
+      <footer className="footer">
+        Drum With Strangers
       </footer>
 
       <style jsx>{`
-        .container {
-          min-height: 100vh;
-          padding: 0 0.5rem;
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          align-items: center;
-        }
-
-        main {
-          padding: 5rem 0;
-          flex: 1;
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          align-items: center;
-        }
-
-        footer {
-          width: 100%;
-          height: 100px;
-          border-top: 1px solid #eaeaea;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-        }
-
-        footer img {
-          margin-left: 0.5rem;
-        }
-
-        footer a {
-          display: flex;
-          justify-content: center;
-          align-items: center;
-        }
-
-        a {
-          color: inherit;
-          text-decoration: none;
-        }
-
-        .title a {
-          color: #0070f3;
-          text-decoration: none;
-        }
-
-        .title a:hover,
-        .title a:focus,
-        .title a:active {
-          text-decoration: underline;
-        }
-
-        .title {
-          margin: 0;
-          line-height: 1.15;
-          font-size: 4rem;
-        }
-
-        .title,
-        .description {
-          text-align: center;
-        }
-
-        .description {
-          line-height: 1.5;
-          font-size: 1.5rem;
-        }
-
-        code {
-          background: #fafafa;
-          border-radius: 5px;
-          padding: 0.75rem;
-          font-size: 1.1rem;
-          font-family: Menlo, Monaco, Lucida Console, Liberation Mono,
-            DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New, monospace;
-        }
-
-        .grid {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          flex-wrap: wrap;
-
-          max-width: 800px;
-          margin-top: 3rem;
-        }
-
-        .card {
-          margin: 1rem;
-          flex-basis: 45%;
-          padding: 1.5rem;
-          text-align: left;
-          color: inherit;
-          text-decoration: none;
-          border: 1px solid #eaeaea;
-          border-radius: 10px;
-          transition: color 0.15s ease, border-color 0.15s ease;
-        }
-
-        .card:hover,
-        .card:focus,
-        .card:active {
-          color: #0070f3;
-          border-color: #0070f3;
-        }
-
-        .card h3 {
-          margin: 0 0 1rem 0;
-          font-size: 1.5rem;
-        }
-
-        .card p {
-          margin: 0;
-          font-size: 1.25rem;
-          line-height: 1.5;
-        }
-
-        .logo {
-          height: 1em;
-        }
-
-        @media (max-width: 600px) {
-          .grid {
-            width: 100%;
-            flex-direction: column;
-          }
-        }
+      .machine { margin-bottom:2em;}
+      .step {
+        background-color: #dedede;
+        margin:2px;
+        border-radius: 4px;
+      }
+      .step:hover {
+        box-shadow: inset 0 0 10px #0f0;
+      }
+      .first-beat {
+        background-color: #bbb;
+      }
+      .beat-on {
+        background-color: #8696af;
+        box-shadow: inset 0 0 5px #000;
+      }
+      .active {
+        background-color: green;
+      }
       `}</style>
 
       <style jsx global>{`
