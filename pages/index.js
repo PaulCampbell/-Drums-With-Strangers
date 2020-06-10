@@ -19,6 +19,7 @@ export default function Home() {
 
   useInterval(() => {
     setIsJustStarted(false)
+    playSamples(activeStep + 1)
     setActiveStep(activeStep === numSteps -1 ? 0 : activeStep + 1)
   }, ((1000*60) / tempo) / 4)
 
@@ -28,6 +29,10 @@ export default function Home() {
       setIsJustStarted(true)
       setActiveStep(numSteps - 1)
     }
+  }
+
+  function playSamples(forStep) {
+
   }
 
   function toggleBeat(instrument, beatIndex) {
@@ -52,7 +57,7 @@ export default function Home() {
   return (
     <div className="container">
       <Head>
-        <title>Drum with strangers</title>
+        <title>Drums with strangers</title>
         <link rel="icon" href="/favicon.ico" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.0/css/bulma.min.css" />
@@ -60,32 +65,30 @@ export default function Home() {
 
       <main className="section">
         <h1 className="title">
-          DWS
+          Drums With Strangers
         </h1>
-
-
-      <div className="machine">
-        { instruments.sort((a, b) => {
-          if(a.order > b.order)
-            return 1
-          return -1
-        }).map(instrument=> {
-          return <div className="columns is-mobile">
-              <div className="column is-1">
-                {instrument.name}
-              </div>
-              { [...Array(numSteps)].map((_, i) => {
-                return <div onClick={() => toggleBeat(instrument, i)} className={getStepCssClasses(instrument, i).join(" ")}>
+        <div className="machine">
+          { instruments.sort((a, b) => {
+            if(a.order > b.order)
+              return 1
+            return -1
+          }).map(instrument=> {
+            return <div className="columns is-mobile">
+                <div className="column is-1">
+                  {instrument.name}
                 </div>
-              })}
-            </div>
-        })}
-      </div>
-      <a href="#" className="button" onClick={toggleIsStarted}>{ isStarted ? "Stop" : "Start" }</a>
+                { [...Array(numSteps)].map((_, i) => {
+                  return <div onClick={() => toggleBeat(instrument, i)} className={getStepCssClasses(instrument, i).join(" ")}>
+                  </div>
+                })}
+              </div>
+          })}
+        </div>
+        <a href="#" className="button" onClick={toggleIsStarted}>{ isStarted ? "Stop" : "Start" }</a>
       </main>
 
       <footer className="footer">
-        Drum With Strangers
+        DWS
       </footer>
 
       <style jsx>{`
