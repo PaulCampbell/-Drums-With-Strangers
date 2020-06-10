@@ -1,25 +1,49 @@
-import react, { useState, useRef, useEffect } from 'react'
+import react, { useState, useEffect } from 'react'
 import Head from 'next/head'
 import useInterval from 'react-useinterval'
 
+const wavs = ['kick.mp3', 'clap.mp3', 'snare.mp3',  'hat_open.mp3', 'hat_closed.mp3']
+
+function preloadAudio(){
+  wavs.forEach(w => {
+    var audio = new Audio(w);
+    audio.preload = "auto";
+    audio.volume = 0.000000001;
+    audio.play();
+  })
+}
+
+function playSound(path){
+  var audio = new Audio(path);
+  audio.play();
+}
+
 export default function Home() {
   const numSteps = 16
-  const tempo = 120
-
+  const [tempo, setTempo] = useState(120)
   const [activeStep, setActiveStep] = useState(0)
-
   const [isStarted, setIsStarted] = useState(false)
   const [isJustStarted, setIsJustStarted] = useState(false)
   const [instruments, setInstruments] = useState([
     { order: 1, name: 'kick', sample: 'kick.mp3', pattern: new Array(numSteps).fill(false)},
     { order: 2, name: 'clap', sample: 'clap.mp3', pattern: new Array(numSteps).fill(false)},
     { order: 3, name: 'snare', sample: 'snare.mp3', pattern: new Array(numSteps).fill(false)},
-    { order: 4, name: 'hat', sample: 'hat.mp3', pattern: new Array(numSteps).fill(false)},
+    { order: 4, name: 'hat open', sample: 'hat_open.mp3', pattern: new Array(numSteps).fill(false)},
+    { order: 5, name: 'hat closed', sample: 'hat_closed.mp3', pattern: new Array(numSteps).fill(false)},
   ])
+
+  useEffect(() => preloadAudio(), [])
+
+  function playSamples(step) {
+    const instrumentsToPlay = instruments.filter(i => i.pattern[step])
+    instrumentsToPlay.forEach(i => playSound(i.sample))
+  }
 
   useInterval(() => {
     setIsJustStarted(false)
-    playSamples(activeStep + 1)
+    if(isStarted) {
+      playSamples(activeStep === numSteps -1 ? 0 : activeStep + 1)
+    }
     setActiveStep(activeStep === numSteps -1 ? 0 : activeStep + 1)
   }, ((1000*60) / tempo) / 4)
 
@@ -29,10 +53,6 @@ export default function Home() {
       setIsJustStarted(true)
       setActiveStep(numSteps - 1)
     }
-  }
-
-  function playSamples(forStep) {
-
   }
 
   function toggleBeat(instrument, beatIndex) {
@@ -52,6 +72,10 @@ export default function Home() {
       cssClasses.push('active')
     }
     return cssClasses
+  }
+
+  function changeTempo(e) {
+    setTempo(e.target.value)
   }
 
   return (
@@ -74,7 +98,7 @@ export default function Home() {
             return -1
           }).map(instrument=> {
             return <div className="columns is-mobile">
-                <div className="column is-1">
+                <div className="column is-2">
                   {instrument.name}
                 </div>
                 { [...Array(numSteps)].map((_, i) => {
@@ -84,6 +108,10 @@ export default function Home() {
               </div>
           })}
         </div>
+        <label className="label">
+          Tempo
+          <input type="number" className="input" value={tempo} min="50" max="200" onChange={changeTempo} />
+        </label>
         <a href="#" className="button" onClick={toggleIsStarted}>{ isStarted ? "Stop" : "Start" }</a>
       </main>
 
